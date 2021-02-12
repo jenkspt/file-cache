@@ -2,6 +2,7 @@ from pathlib import Path
 import functools
 import pickle
 import hashlib
+import logging
 
 
 def make_key(function, args, kwargs, typed=False):
@@ -36,14 +37,14 @@ def cache(path: str='.cache', typed: bool =False):
         typed: If true, cache on argument types
     """
     path = Path(path)
-    path.mkdir(exist_ok=True)
+    path.mkdir(exist_ok=True, parents=True)
 
     def decorating_function(user_function):
 
         @functools.wraps(user_function)
         def wrapper(*args, **kwargs):
             cache_bust = kwargs.pop('cache_bust', False)
-            print('Cache Bust?', cache_bust)
+            logging.info(f'cache bust: {cache_bust}')
             # Create the identifier from the function and arguments
             key = make_key(user_function, args, kwargs, typed)
             # Create a stable hash of the key
@@ -54,12 +55,12 @@ def cache(path: str='.cache', typed: bool =False):
                 saved_key, data = read_cache_file(cache_file)
                 # Check for hash collisions
                 if key == saved_key:
+                    logging.info('cache hit')
                     if cache_bust:
                         data = user_function(*args, **kwargs)
                         write_cache_file(cache_file, key, data)
-                    print('Cache Hit')
                     return data
-            print('Cache Miss')
+            logging.info('cache miss')
             # Collisions will increment the file suffix
             n = int(cache_file.stem.split('_')[-1]) + 1 if cache_file else 0
             data = user_function(*args, **kwargs)
