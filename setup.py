@@ -5,6 +5,6 @@ setup(name='pickle-cache',
       description='Simple persistent local file cache decorator',
       url='',
       author='Penn Jenks',
-      author_email='flyingcircus@example.com',
+      author_email='',
       license='MIT',
       py_modules=['file_cache'])
